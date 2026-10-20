@@ -12,12 +12,12 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
 <header><div class="brand"><span>▥</span>bit by bit</div><div class="tag">Computer architecture / Practice 04</div></header>
 <nav class="toolbar" style="margin-top:18px" aria-label="Practice pages"><a href="multiply-practice.html">Multiplication</a><a href="division-practice.html">Division</a><a href="floating-practice.html">Floating Point</a><span aria-current="page">Half Addition</span><a href="half-multiplication-practice.html">Half Multiplication</a></nav>
 <section class="hero"><div class="eyebrow">16-bit half precision · One guard, one round, one sticky</div><h1>Add. Align. Round.</h1><p>Work out the sum by hand, then check the final bit pattern and its decoded value.</p></section>
-<div class="toolbar"><label for="problemType">Problem type</label><select id="problemType"><option value="mixed">Mixed practice</option><option value="ordinary">Ordinary addition</option><option value="tie">Halfway rounding</option><option value="negative-tie">Negative halfway · −42.59375 + −0.015625</option><option value="sticky">Sticky bit</option><option value="cancellation">Cancellation</option><option value="overflow">Overflow</option><option value="underflow">Underflow</option><option value="example">COD example</option></select><button class="primary" id="new">↻ New problem</button><button id="example">COD example</button></div>
-<section class="problem" aria-label="Addition problem"><div class="problem-top"><span class="eyebrow">Calculate A + B</span><span class="badge">Binary16 · Bias 15</span></div><div class="operands"><div class="operand"><h2>A · DECIMAL</h2><div class="number" id="aValue"></div></div><div class="cross">+</div><div class="operand"><h2>B · DECIMAL</h2><div class="number" id="bValue"></div></div></div><div class="format-strip"><span>Sign: 1 bit</span><span>Exponent: 5 bits</span><span>Fraction: 10 bits</span><span>G / R / S: 1 / 1 / 1</span></div><p class="problem-description" style="margin-top:18px">Calculate the sum by hand, assuming A and B are stored in 16-bit half precision. Use one guard bit, one round bit, and one sticky bit; round to nearest, ties to even. Give the final 16-bit result and the decimal value obtained by decoding it.</p><p class="policy"><strong>Exercise rule:</strong> Overflow → +INF or −INF. Underflow → 0: values that would be subnormal or round to zero are flushed to an all-zero 16-bit word. Apply this rule when storing operands and the result.</p></section>
+<div class="toolbar"><label for="roundingMode">Rounding rule</label><select id="roundingMode"><option value="nearest-ties-zero">Classroom · GRS 100 keeps</option><option value="nearest-even">IEEE · Nearest even</option></select><label for="problemType">Problem type</label><select id="problemType"><option value="mixed">Mixed practice</option><option value="ordinary">Ordinary addition</option><option value="tie">Halfway rounding</option><option value="negative-tie">Negative halfway · −42.59375 + −0.015625</option><option value="sticky">Sticky bit</option><option value="cancellation">Cancellation</option><option value="overflow">Overflow</option><option value="underflow">Underflow</option><option value="example">COD example</option></select><button class="primary" id="new">↻ New problem</button><button id="example">COD example</button></div>
+<section class="problem" aria-label="Addition problem"><div class="problem-top"><span class="eyebrow">Calculate A + B</span><span class="badge">Binary16 · Bias 15</span></div><div class="operands"><div class="operand"><h2>A · DECIMAL</h2><div class="number" id="aValue"></div></div><div class="cross">+</div><div class="operand"><h2>B · DECIMAL</h2><div class="number" id="bValue"></div></div></div><div class="format-strip"><span>Sign: 1 bit</span><span>Exponent: 5 bits</span><span>Fraction: 10 bits</span><span>G / R / S: 1 / 1 / 1</span></div><p class="problem-description" style="margin-top:18px">Calculate the sum by hand, assuming A and B are stored in 16-bit half precision. Use one guard bit, one round bit, and one sticky bit; round according to the selected rule. Give the final 16-bit result and the decimal value obtained by decoding it.</p><p id="roundingRule" class="policy"></p><p class="policy"><strong>Exercise rule:</strong> Overflow → +INF or −INF. Underflow → 0: values that would be subnormal or round to zero are flushed to an all-zero 16-bit word. Apply this rule when storing operands and the result.</p></section>
 <section class="workspace"><div class="sectionbar"><h2>Final answers</h2><span class="small">Two answers · One sum</span></div><div class="answer-body"><div class="answer-grid"><div><label for="bitsAnswer" class="answer-label">16-bit sum</label><textarea id="bitsAnswer" class="answer-field" rows="1" spellcheck="false" placeholder="s eeeee ffffffffff" aria-describedby="bitsAnswerMessage"></textarea><div id="bitsAnswerMessage" class="field-message"></div><p class="small">Exactly 16 binary digits. Spaces and line breaks are allowed.</p></div><div><label for="decimalAnswer" class="answer-label">Decoded decimal value</label><textarea id="decimalAnswer" class="answer-field" rows="1" spellcheck="false" placeholder="Decimal, +INF, -INF, or 0" aria-describedby="decimalAnswerMessage"></textarea><div id="decimalAnswerMessage" class="field-message"></div><p class="small">Decode the rounded sum. Use at least 6 significant digits; relative tolerance 0.0005%.</p></div></div></div><div class="bottom"><button class="primary" id="check">Check my work</button><button id="clear">Clear my work</button><button id="showSolution" aria-expanded="false">Show all steps</button><span class="small">Ctrl + Enter to check</span></div><div id="result" role="status" aria-live="polite" hidden></div></section>
 <section id="solution" hidden><h2>Worked solution</h2><div id="solutionBody"></div></section>
-<details><summary>Half precision & G/R/S rules</summary><p>A normal half-precision value is (−1)^s × 1.f × 2^(E − 15). Normal unbiased exponents run from −14 to +15. Round each input to its stored half value before aligning and adding.</p><p>Keep 11 significant bits (the implicit leading bit plus 10 fraction bits). G is the next bit, R is the bit after G, and S is the OR of all remaining discarded bits. Increment the retained significand when G = 1 and (R = 1 or S = 1 or the retained last bit is 1). This implements round to nearest, ties to even. When G = 1 and R = S = 0, keep an even retained last bit (0), or increment an odd retained last bit (1) to make it even. For negative numbers, incrementing the magnitude makes the result more negative.</p><p>A significand carry may increase the exponent. An overflowing result uses exponent 11111 and fraction 0000000000; the sign selects +INF or −INF. The underflow-to-zero policy is an exercise convention: standard IEEE half precision also supports subnormals.</p><p>The COD example uses A = 26.125 and B = 0.4150390625. Decimal numbers are displayed in full, without scientific notation.</p><p>References: <a href="https://www.mathworks.com/help/coder/ug/what-is-half-precision.html" target="_blank" rel="noreferrer">binary16 field widths</a> and <a href="https://docs.oracle.com/cd/E19957-01/802-5692/802-5692.pdf" target="_blank" rel="noreferrer">guard, round, sticky bits and nearest-even arithmetic</a>.</p></details>
-<footer><span>Half addition · G/R/S · Nearest even</span><span id="saveState">Your work is saved automatically in this browser</span></footer>
+<details><summary>Half precision & G/R/S rules</summary><p>A normal half-precision value is (−1)^s × 1.f × 2^(E − 15). Normal unbiased exponents run from −14 to +15. Round each input to its stored half value before aligning and adding.</p><p>Keep 11 significant bits (the implicit leading bit plus 10 fraction bits). G is the next bit, R is the bit after G, and S is the OR of all remaining discarded bits.</p><p><strong>Default classroom rule:</strong> increment only when G = 1 and R or S is 1. When G = 1, R = 0, S = 0, keep the retained bits, even if the retained last bit is 1. This rounds to nearest with exact ties toward zero.</p><p><strong>Optional IEEE nearest-even rule:</strong> exact ties keep an even retained last bit (0), or increment an odd retained last bit (1). Both modes use the same rule for storing operands and rounding the final result.</p><p>A significand carry may increase the exponent. An overflowing result uses exponent 11111 and fraction 0000000000; the sign selects +INF or −INF. The underflow-to-zero policy is an exercise convention: standard IEEE half precision also supports subnormals.</p><p>The COD example uses A = 26.125 and B = 0.4150390625. Decimal numbers are displayed in full, without scientific notation.</p><p>References: <a href="https://www.mathworks.com/help/coder/ug/what-is-half-precision.html" target="_blank" rel="noreferrer">binary16 field widths</a> and <a href="https://docs.oracle.com/cd/E19957-01/802-5692/802-5692.pdf" target="_blank" rel="noreferrer">guard, round, sticky bits and nearest-even arithmetic</a>.</p></details>
+<footer><span>Half addition · G/R/S · Selectable rounding</span><span id="saveState">Your work is saved automatically in this browser</span></footer>
 </main><script>
 (function (root) {
   'use strict';
@@ -59,23 +59,24 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
     }
     return (sign ? '-' : '') + text;
   }
-  function roundScaled(n, d, shift) {
+  function roundScaled(n, d, shift, roundingMode) {
     if (shift >= 0) n <<= BigInt(shift); else d <<= BigInt(-shift);
     const q = n / d, r = n % d;
-    return q + (2n * r > d || (2n * r === d && q % 2n === 1n) ? 1n : 0n);
+    return q + (2n * r > d || (2n * r === d && roundingMode === 'nearest-even' && q % 2n === 1n) ? 1n : 0n);
   }
-  function encode(decimal, e, f) {
+  function encode(decimal, e, f, roundingMode = 'nearest-even') {
+    if (!['nearest-even', 'nearest-ties-zero'].includes(roundingMode)) throw new Error('Invalid rounding mode.');
     const fmt = format(e, f), { sign, numerator: n, denominator: d } = parseDecimal(decimal);
     const pack = (exp, frac) => [String(sign), bits(exp, e), bits(frac, f)];
     if (n === 0n) return pack(0, 0);
     let power = n.toString(2).length - d.toString(2).length;
     if (power >= 0 ? n < (d << BigInt(power)) : (n << BigInt(-power)) < d) power--;
     if (power < fmt.emin) {
-      const frac = roundScaled(n, d, f - fmt.emin);
+      const frac = roundScaled(n, d, f - fmt.emin, roundingMode);
       return frac >= 2n ** BigInt(f) ? pack(1, 0) : pack(0, frac);
     }
     if (power > fmt.emax) return pack(2 ** e - 1, 0);
-    let significand = roundScaled(n, d, f - power);
+    let significand = roundScaled(n, d, f - power, roundingMode);
     if (significand === 2n ** BigInt(f + 1)) { power++; significand >>= 1n; }
     if (power > fmt.emax) return pack(2 ** e - 1, 0);
     return pack(power + fmt.bias, significand - 2n ** BigInt(f));
@@ -148,8 +149,8 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
   'use strict';
   const FP = typeof module !== 'undefined' && module.exports ? require('./floating.js') : root.Floating;
   const ZERO = ['0','00000','0000000000'];
-  function store(decimal) {
-    const rawFields=FP.encode(decimal,5,10);
+  function store(decimal,roundingMode='nearest-even') {
+    const rawFields=FP.encode(decimal,5,10,roundingMode);
     const underflow=rawFields[1]==='00000' && FP.parseDecimal(decimal).numerator!==0n;
     const fields=underflow?[...ZERO]:rawFields;
     return { decimal:FP.plainDecimal(decimal),rawFields,fields,underflow,decoded:FP.decode(fields,5,10) };
@@ -162,7 +163,7 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
     if(point>=raw.length) return raw+'0'.repeat(point-raw.length)+'.0';
     return raw.slice(0,point)+'.'+raw.slice(point);
   }
-  function grs(coefficient,cut) {
+  function grs(coefficient,cut,roundingMode='nearest-even') {
     let retained,guard=0,round=0,sticky=0;
     if(cut<=0) retained=coefficient<<BigInt(-cut);
     else {
@@ -171,19 +172,20 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
       if(cut>=2) round=Number((coefficient>>BigInt(cut-2))&1n);
       if(cut>2) sticky=(coefficient&((1n<<BigInt(cut-2))-1n))!==0n?1:0;
     }
-    const increment=!!(guard&&(round||sticky||retained%2n===1n));
+    const increment=!!(guard&&(round||sticky||(roundingMode==='nearest-even'&&retained%2n===1n)));
     return { retained:retained.toString(),guard,round,sticky,increment,
       rounded:(retained+(increment?1n:0n)).toString() };
   }
-  function roundingReason(rounding,negative=false) {
+  function roundingReason(rounding,negative=false,roundingMode='nearest-even') {
     const {guard,round,sticky}=rounding,last=Number(BigInt(rounding.retained)%2n);
     if(guard===0) return round||sticky ? 'G = 0: the discarded part is below halfway. Keep the retained bits.' : 'G = R = S = 0: the result is exact. Keep the retained bits.';
     const direction=negative?' Increasing the magnitude makes this negative result more negative; its sign stays 1.':'';
+    if(round===0&&sticky===0&&roundingMode==='nearest-ties-zero') return 'G = 1, R = 0, S = 0: exactly halfway. Under the selected classroom rule, keep the retained bits regardless of their last bit. Do not increment the magnitude.';
     if(round===0&&sticky===0) return `G = 1, R = 0, S = 0: exactly halfway. The retained last bit is ${last} (${last?'odd':'even'}). ${last?'Increment the magnitude so the rounded last bit becomes 0 (even).':'Keep the retained bits because their last bit is already 0 (even).'}${last?direction:''}`;
     return 'G = 1 and R or S is 1: the discarded part is above halfway. Increment the magnitude.'+direction;
   }
-  function add(aText,bText) {
-    const a=store(aText),b=store(bText),x=a.decoded,y=b.decoded;
+  function add(aText,bText,roundingMode='nearest-even') {
+    const a=store(aText,roundingMode),b=store(bText,roundingMode),x=a.decoded,y=b.decoded;
     if(!Number.isFinite(x.value)||!Number.isFinite(y.value)) {
       const invalid=x.kind==='infinity'&&y.kind==='infinity'&&x.sign!==y.sign;
       const sign=x.kind==='infinity'?x.sign:y.sign;
@@ -198,8 +200,8 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
     const exact=FP.dyadicText(magnitude,power,sign);
     const exponent=magnitude===0n?null:magnitude.toString(2).length-1+power;
     const roundExponent=exponent===null?-14:Math.max(-14,exponent);
-    const rounding=grs(magnitude,roundExponent-10-power);
-    const stored=store(exact);
+    const rounding=grs(magnitude,roundExponent-10-power,roundingMode);
+    const stored=store(exact,roundingMode);
     return { a,b,fields:stored.fields,rawFields:stored.rawFields,decoded:stored.decoded,
       underflow:stored.underflow,exact,power,exponent,commonExponent,rounding,
       alignedA:binaryAt(x.coefficient,x.power-commonExponent),
@@ -239,20 +241,24 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
 const $=id=>document.getElementById(id),FP=Floating,H=HalfAddition;
 const saveKey='bit-by-bit-half-addition-v1';
 let state;
-const calculate=()=>H.add(state.a,state.b);
+const calculate=()=>H.add(state.a,state.b,state.roundingMode);
+const roundingRule=()=>state.roundingMode==='nearest-ties-zero'?'Classroom: nearest, ties toward zero (GRS 100 → keep)':'IEEE: nearest, ties to even';
+const incrementRule=()=>state.roundingMode==='nearest-ties-zero'?'Increment only when G = 1 and R or S is 1. GRS = 100 always keeps the retained bits.':'Increment when G = 1 and at least one of R, S, or the retained last bit is 1.';
 function save(){try{localStorage.setItem(saveKey,JSON.stringify(state));}catch{$('saveState').textContent='Autosave unavailable; keep this tab open to retain your work.';}}
 function clearFeedback(){
   $('result').hidden=true;$('solution').hidden=true;$('showSolution').textContent='Show all steps';$('showSolution').setAttribute('aria-expanded','false');
   for(const id of ['bitsAnswer','decimalAnswer']){$(id).classList.remove('correct','incorrect');$(id).removeAttribute('aria-invalid');$(id+'Message').textContent='';}
 }
 function render(){
+  $('roundingMode').value=state.roundingMode; $('roundingRule').textContent=roundingRule();
   $('problemType').value=state.type;$('aValue').textContent=state.a;$('bValue').textContent=state.b;
   $('bitsAnswer').value=state.bits||'';$('decimalAnswer').value=state.decimal||'';clearFeedback();
 }
 function newProblem(example=false){
   const type=example?'example':$('problemType').value;
-  const [a,b]=H.generate(type);state={a,b,type,bits:'',decimal:''};render();save();
+  const [a,b]=H.generate(type);state={a,b,type,roundingMode:$('roundingMode').value,bits:'',decimal:''};render();save();
 }
+$('roundingMode').onchange=()=>{state.roundingMode=$('roundingMode').value;state.bits='';state.decimal='';render();save();};
 $('new').onclick=()=>newProblem();$('example').onclick=()=>newProblem(true);$('problemType').onchange=()=>newProblem();
 $('clear').onclick=()=>{state.bits='';state.decimal='';render();save();};
 for(const [id,key] of [['bitsAnswer','bits'],['decimalAnswer','decimal']]){
@@ -280,7 +286,7 @@ $('showSolution').onclick=()=>{
     const item=document.createElement('section'),title=document.createElement('h3');title.textContent=heading;item.append(title);
     for(const line of lines){const p=document.createElement('p');p.textContent=line;item.append(p);}$('solutionBody').append(item);
   };
-  step('1 · Store A and B in half precision',[operandExplanation(result.a,'A'),operandExplanation(result.b,'B'),'Each operand is rounded to nearest-even before the addition.']);
+  step('1 · Store A and B in half precision',[operandExplanation(result.a,'A'),operandExplanation(result.b,'B'),'Each operand is rounded using the selected rule before the addition.']);
   if(result.special){
     step('2 · Special-value arithmetic',['The stored operands include an infinity. Opposite-signed infinities produce NaN; otherwise the infinity determines the result.']);
   }else{
@@ -306,10 +312,10 @@ $('showSolution').onclick=()=>{
       ]);
       step('5 · Use one guard, one round, and one sticky bit',[
         `Retain ${retained[0]}.${retained.slice(1)} at exponent ${roundExponent}. G = ${r.guard}, R = ${r.round}, S = ${r.sticky}.`,
-        'S is the OR of all bits after R. Increment exactly when G = 1 and at least one of R, S, or the retained last bit is 1.',
-        H.roundingReason(r,result.sign===1),
+        'S is the OR of all bits after R. '+incrementRule(),
+        H.roundingReason(r,result.sign===1,state.roundingMode),
         ...(r.guard===1&&r.round===0&&r.sticky===0?[
-          `Halfway candidates: ${FP.dyadicText(BigInt(r.retained),roundExponent-10,result.sign)} and ${FP.dyadicText(BigInt(r.retained)+1n,roundExponent-10,result.sign)}. Select the candidate whose retained significand is even.`
+          `Halfway candidates: ${FP.dyadicText(BigInt(r.retained),roundExponent-10,result.sign)} and ${FP.dyadicText(BigInt(r.retained)+1n,roundExponent-10,result.sign)}. ${state.roundingMode==='nearest-ties-zero'?'Keep the first candidate (smaller magnitude) under the classroom rule.':'Select the candidate whose retained significand is even.'}`
         ]:[]),
         `${r.increment?'Increment':'Keep'} the retained significand. Rounded significand integer: ${r.retained} → ${r.rounded}.`,
         BigInt(r.rounded)>=2048n?'The rounded significand carries into a new leading bit: shift it right once and increase the exponent by 1.':'No exponent carry is needed.'
@@ -330,7 +336,8 @@ document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&e
 try{
   const stored=JSON.parse(localStorage.getItem(saveKey));
   if(stored&&['mixed','ordinary','tie','sticky','cancellation','overflow','underflow','example','negative-tie'].includes(stored.type)&&typeof stored.bits==='string'&&typeof stored.decimal==='string'){
-    H.add(stored.a,stored.b);state=stored;
+    if(!['nearest-even','nearest-ties-zero'].includes(stored.roundingMode)){stored.roundingMode='nearest-ties-zero';stored.bits='';stored.decimal='';}
+    H.add(stored.a,stored.b,stored.roundingMode);state=stored;
   }
 }catch{/* Ignore an invalid or unavailable save. */}
 if(state)render();else newProblem();

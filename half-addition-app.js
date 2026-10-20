@@ -2,20 +2,24 @@
 const $=id=>document.getElementById(id),FP=Floating,H=HalfAddition;
 const saveKey='bit-by-bit-half-addition-v1';
 let state;
-const calculate=()=>H.add(state.a,state.b);
+const calculate=()=>H.add(state.a,state.b,state.roundingMode);
+const roundingRule=()=>state.roundingMode==='nearest-ties-zero'?'Classroom: nearest, ties toward zero (GRS 100 → keep)':'IEEE: nearest, ties to even';
+const incrementRule=()=>state.roundingMode==='nearest-ties-zero'?'Increment only when G = 1 and R or S is 1. GRS = 100 always keeps the retained bits.':'Increment when G = 1 and at least one of R, S, or the retained last bit is 1.';
 function save(){try{localStorage.setItem(saveKey,JSON.stringify(state));}catch{$('saveState').textContent='Autosave unavailable; keep this tab open to retain your work.';}}
 function clearFeedback(){
   $('result').hidden=true;$('solution').hidden=true;$('showSolution').textContent='Show all steps';$('showSolution').setAttribute('aria-expanded','false');
   for(const id of ['bitsAnswer','decimalAnswer']){$(id).classList.remove('correct','incorrect');$(id).removeAttribute('aria-invalid');$(id+'Message').textContent='';}
 }
 function render(){
+  $('roundingMode').value=state.roundingMode; $('roundingRule').textContent=roundingRule();
   $('problemType').value=state.type;$('aValue').textContent=state.a;$('bValue').textContent=state.b;
   $('bitsAnswer').value=state.bits||'';$('decimalAnswer').value=state.decimal||'';clearFeedback();
 }
 function newProblem(example=false){
   const type=example?'example':$('problemType').value;
-  const [a,b]=H.generate(type);state={a,b,type,bits:'',decimal:''};render();save();
+  const [a,b]=H.generate(type);state={a,b,type,roundingMode:$('roundingMode').value,bits:'',decimal:''};render();save();
 }
+$('roundingMode').onchange=()=>{state.roundingMode=$('roundingMode').value;state.bits='';state.decimal='';render();save();};
 $('new').onclick=()=>newProblem();$('example').onclick=()=>newProblem(true);$('problemType').onchange=()=>newProblem();
 $('clear').onclick=()=>{state.bits='';state.decimal='';render();save();};
 for(const [id,key] of [['bitsAnswer','bits'],['decimalAnswer','decimal']]){
@@ -43,7 +47,7 @@ $('showSolution').onclick=()=>{
     const item=document.createElement('section'),title=document.createElement('h3');title.textContent=heading;item.append(title);
     for(const line of lines){const p=document.createElement('p');p.textContent=line;item.append(p);}$('solutionBody').append(item);
   };
-  step('1 · Store A and B in half precision',[operandExplanation(result.a,'A'),operandExplanation(result.b,'B'),'Each operand is rounded to nearest-even before the addition.']);
+  step('1 · Store A and B in half precision',[operandExplanation(result.a,'A'),operandExplanation(result.b,'B'),'Each operand is rounded using the selected rule before the addition.']);
   if(result.special){
     step('2 · Special-value arithmetic',['The stored operands include an infinity. Opposite-signed infinities produce NaN; otherwise the infinity determines the result.']);
   }else{
@@ -69,10 +73,10 @@ $('showSolution').onclick=()=>{
       ]);
       step('5 · Use one guard, one round, and one sticky bit',[
         `Retain ${retained[0]}.${retained.slice(1)} at exponent ${roundExponent}. G = ${r.guard}, R = ${r.round}, S = ${r.sticky}.`,
-        'S is the OR of all bits after R. Increment exactly when G = 1 and at least one of R, S, or the retained last bit is 1.',
-        H.roundingReason(r,result.sign===1),
+        'S is the OR of all bits after R. '+incrementRule(),
+        H.roundingReason(r,result.sign===1,state.roundingMode),
         ...(r.guard===1&&r.round===0&&r.sticky===0?[
-          `Halfway candidates: ${FP.dyadicText(BigInt(r.retained),roundExponent-10,result.sign)} and ${FP.dyadicText(BigInt(r.retained)+1n,roundExponent-10,result.sign)}. Select the candidate whose retained significand is even.`
+          `Halfway candidates: ${FP.dyadicText(BigInt(r.retained),roundExponent-10,result.sign)} and ${FP.dyadicText(BigInt(r.retained)+1n,roundExponent-10,result.sign)}. ${state.roundingMode==='nearest-ties-zero'?'Keep the first candidate (smaller magnitude) under the classroom rule.':'Select the candidate whose retained significand is even.'}`
         ]:[]),
         `${r.increment?'Increment':'Keep'} the retained significand. Rounded significand integer: ${r.retained} → ${r.rounded}.`,
         BigInt(r.rounded)>=2048n?'The rounded significand carries into a new leading bit: shift it right once and increase the exponent by 1.':'No exponent carry is needed.'
@@ -93,7 +97,8 @@ document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&e
 try{
   const stored=JSON.parse(localStorage.getItem(saveKey));
   if(stored&&['mixed','ordinary','tie','sticky','cancellation','overflow','underflow','example','negative-tie'].includes(stored.type)&&typeof stored.bits==='string'&&typeof stored.decimal==='string'){
-    H.add(stored.a,stored.b);state=stored;
+    if(!['nearest-even','nearest-ties-zero'].includes(stored.roundingMode)){stored.roundingMode='nearest-ties-zero';stored.bits='';stored.decimal='';}
+    H.add(stored.a,stored.b,stored.roundingMode);state=stored;
   }
 }catch{/* Ignore an invalid or unavailable save. */}
 if(state)render();else newProblem();

@@ -2,20 +2,24 @@
 const $=id=>document.getElementById(id),FP=Floating,H=HalfMultiplication;
 const saveKey='bit-by-bit-half-multiplication-v1';
 let state;
-const calculate=()=>H.multiply(state.a,state.b);
+const calculate=()=>H.multiply(state.a,state.b,state.roundingMode);
+const roundingRule=()=>state.roundingMode==='nearest-ties-zero'?'Classroom: nearest, ties toward zero (GRS 100 → keep)':'IEEE: nearest, ties to even';
+const incrementRule=()=>state.roundingMode==='nearest-ties-zero'?'Increment only when G = 1 and R or S is 1. GRS = 100 always keeps the retained bits.':'Increment when G = 1 and at least one of R, S, or the retained last bit is 1.';
 function save(){try{localStorage.setItem(saveKey,JSON.stringify(state));}catch{$('saveState').textContent='Autosave unavailable; keep this tab open to retain your work.';}}
 function clearFeedback(){
   $('result').hidden=true;$('solution').hidden=true;$('showSolution').textContent='Show all steps';$('showSolution').setAttribute('aria-expanded','false');
   for(const id of ['bitsAnswer','decimalAnswer']){$(id).classList.remove('correct','incorrect');$(id).removeAttribute('aria-invalid');$(id+'Message').textContent='';}
 }
 function render(){
+  $('roundingMode').value=state.roundingMode; $('roundingRule').textContent=roundingRule();
   $('problemType').value=state.type;$('aValue').textContent=state.a;$('bValue').textContent=state.b;
   $('bitsAnswer').value=state.bits||'';$('decimalAnswer').value=state.decimal||'';clearFeedback();
 }
 function newProblem(example=false){
   const type=example?'example':$('problemType').value;
-  const [a,b]=H.generate(type);state={a,b,type,bits:'',decimal:''};render();save();
+  const [a,b]=H.generate(type);state={a,b,type,roundingMode:$('roundingMode').value,bits:'',decimal:''};render();save();
 }
+$('roundingMode').onchange=()=>{state.roundingMode=$('roundingMode').value;state.bits='';state.decimal='';render();save();};
 $('new').onclick=()=>newProblem();$('example').onclick=()=>newProblem(true);$('problemType').onchange=()=>newProblem();
 $('clear').onclick=()=>{state.bits='';state.decimal='';render();save();};
 for(const [id,key] of [['bitsAnswer','bits'],['decimalAnswer','decimal']]){
@@ -32,7 +36,7 @@ $('check').onclick=()=>{
   $('result').textContent=correct===2?'✓ Both answers are correct!':`${correct}/2 answers correct. Use the product of the stored half-precision operands, then round the result.`;
 };
 function operandExplanation(operand,name){
-  const d=operand.decoded,conversion=H.explainOperand(operand.decimal);
+  const d=operand.decoded,conversion=H.explainOperand(operand.decimal,state.roundingMode);
   const lines=[`${name}: fractional part ${conversion.fractionalDecimal} = ${conversion.fractionalBinary}₂.`,
     `${name}: original decimal ${operand.decimal} = ${conversion.rawBinary}₂ (before rounding).`];
   if(!conversion.zero){
@@ -82,8 +86,8 @@ $('showSolution').onclick=()=>{
       ]);
       step('5 · Use one guard, one round, and one sticky bit',[
         `Retain ${retained[0]}.${retained.slice(1)} at exponent ${roundExponent}. G = ${r.guard}, R = ${r.round}, S = ${r.sticky}.`,
-        'S is the OR of all bits after R. Increment exactly when G = 1 and at least one of R, S, or the retained last bit is 1.',
-        HalfAddition.roundingReason(r,result.sign===1),
+        'S is the OR of all bits after R. '+incrementRule(),
+        HalfAddition.roundingReason(r,result.sign===1,state.roundingMode),
         `${r.increment?'Increment':'Keep'} the retained significand. Rounded significand integer: ${r.retained} → ${r.rounded}.`,
         BigInt(r.rounded)>=2048n?'The rounded significand carries into a new leading bit: shift it right once and increase the exponent by 1.':'No exponent carry is needed.'
       ]);
@@ -103,7 +107,8 @@ document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&e
 try{
   const stored=JSON.parse(localStorage.getItem(saveKey));
   if(stored&&['mixed','ordinary','tie','sticky','normalization','zero','overflow','underflow','example','conversion'].includes(stored.type)&&typeof stored.bits==='string'&&typeof stored.decimal==='string'){
-    H.multiply(stored.a,stored.b);state=stored;
+    if(!['nearest-even','nearest-ties-zero'].includes(stored.roundingMode)){stored.roundingMode='nearest-ties-zero';stored.bits='';stored.decimal='';}
+    H.multiply(stored.a,stored.b,stored.roundingMode);state=stored;
   }
 }catch{/* Ignore an invalid or unavailable save. */}
 if(state)render();else newProblem();

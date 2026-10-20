@@ -71,23 +71,24 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
     }
     return (sign ? '-' : '') + text;
   }
-  function roundScaled(n, d, shift) {
+  function roundScaled(n, d, shift, roundingMode) {
     if (shift >= 0) n <<= BigInt(shift); else d <<= BigInt(-shift);
     const q = n / d, r = n % d;
-    return q + (2n * r > d || (2n * r === d && q % 2n === 1n) ? 1n : 0n);
+    return q + (2n * r > d || (2n * r === d && roundingMode === 'nearest-even' && q % 2n === 1n) ? 1n : 0n);
   }
-  function encode(decimal, e, f) {
+  function encode(decimal, e, f, roundingMode = 'nearest-even') {
+    if (!['nearest-even', 'nearest-ties-zero'].includes(roundingMode)) throw new Error('Invalid rounding mode.');
     const fmt = format(e, f), { sign, numerator: n, denominator: d } = parseDecimal(decimal);
     const pack = (exp, frac) => [String(sign), bits(exp, e), bits(frac, f)];
     if (n === 0n) return pack(0, 0);
     let power = n.toString(2).length - d.toString(2).length;
     if (power >= 0 ? n < (d << BigInt(power)) : (n << BigInt(-power)) < d) power--;
     if (power < fmt.emin) {
-      const frac = roundScaled(n, d, f - fmt.emin);
+      const frac = roundScaled(n, d, f - fmt.emin, roundingMode);
       return frac >= 2n ** BigInt(f) ? pack(1, 0) : pack(0, frac);
     }
     if (power > fmt.emax) return pack(2 ** e - 1, 0);
-    let significand = roundScaled(n, d, f - power);
+    let significand = roundScaled(n, d, f - power, roundingMode);
     if (significand === 2n ** BigInt(f + 1)) { power++; significand >>= 1n; }
     if (power > fmt.emax) return pack(2 ** e - 1, 0);
     return pack(power + fmt.bias, significand - 2n ** BigInt(f));

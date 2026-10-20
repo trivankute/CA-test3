@@ -78,3 +78,9 @@ Source: `half-multiplication.html`, `half-multiplication.js`, `half-multiplicati
 Half Multiplication now explains each original operand before storage: fractional decimal-to-binary expansion, full original binary value, normalization, retained 10-bit fraction and G/R/S, then rounded stored half bits/value. The Conversion example uses −80.7494 × −0.2236, explicitly showing 0.7494 = 0.101111111101… before A rounds to −80.75.
 
 Half Addition and Half Multiplication now spell out the exact G/R/S rounding decision, including the retained least-significant bit in halfway cases. Negative halfway practice includes −42.59375 + −0.015625 = −42.609375 exactly, rounded to −42.625 because significand 1364 is even (1363 is odd). The numeric nearest-even algorithm is unchanged.
+
+## Selectable rounding in half arithmetic
+
+Half Addition and Half Multiplication now default to the requested classroom rule: increment iff G = 1 and (R = 1 or S = 1); exact halfway GRS = 100 keeps the retained magnitude, regardless of the last retained bit. This is round-to-nearest with ties toward zero, not IEEE nearest-even. The Rounding rule selector also offers IEEE nearest-even. The selected mode applies consistently to input storage, operation rounding, conversion explanations, grading, and worked solutions. Existing saves without a rounding-mode field migrate to the classroom rule and clear prior answers.
+
+With classroom rounding, −42.59375 + −0.015625 gives −42.59375; with nearest-even, it gives −42.625. The custom-format Floating Point page retains nearest-even. `node test-classroom-rounding.cjs` checks 20,000 operations against an independent nearest-value reference plus all G/R/S combinations and exact-halfway boundaries.

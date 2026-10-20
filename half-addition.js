@@ -2,8 +2,8 @@
   'use strict';
   const FP = typeof module !== 'undefined' && module.exports ? require('./floating.js') : root.Floating;
   const ZERO = ['0','00000','0000000000'];
-  function store(decimal) {
-    const rawFields=FP.encode(decimal,5,10);
+  function store(decimal,roundingMode='nearest-even') {
+    const rawFields=FP.encode(decimal,5,10,roundingMode);
     const underflow=rawFields[1]==='00000' && FP.parseDecimal(decimal).numerator!==0n;
     const fields=underflow?[...ZERO]:rawFields;
     return { decimal:FP.plainDecimal(decimal),rawFields,fields,underflow,decoded:FP.decode(fields,5,10) };
@@ -16,7 +16,7 @@
     if(point>=raw.length) return raw+'0'.repeat(point-raw.length)+'.0';
     return raw.slice(0,point)+'.'+raw.slice(point);
   }
-  function grs(coefficient,cut) {
+  function grs(coefficient,cut,roundingMode='nearest-even') {
     let retained,guard=0,round=0,sticky=0;
     if(cut<=0) retained=coefficient<<BigInt(-cut);
     else {
@@ -25,19 +25,20 @@
       if(cut>=2) round=Number((coefficient>>BigInt(cut-2))&1n);
       if(cut>2) sticky=(coefficient&((1n<<BigInt(cut-2))-1n))!==0n?1:0;
     }
-    const increment=!!(guard&&(round||sticky||retained%2n===1n));
+    const increment=!!(guard&&(round||sticky||(roundingMode==='nearest-even'&&retained%2n===1n)));
     return { retained:retained.toString(),guard,round,sticky,increment,
       rounded:(retained+(increment?1n:0n)).toString() };
   }
-  function roundingReason(rounding,negative=false) {
+  function roundingReason(rounding,negative=false,roundingMode='nearest-even') {
     const {guard,round,sticky}=rounding,last=Number(BigInt(rounding.retained)%2n);
     if(guard===0) return round||sticky ? 'G = 0: the discarded part is below halfway. Keep the retained bits.' : 'G = R = S = 0: the result is exact. Keep the retained bits.';
     const direction=negative?' Increasing the magnitude makes this negative result more negative; its sign stays 1.':'';
+    if(round===0&&sticky===0&&roundingMode==='nearest-ties-zero') return 'G = 1, R = 0, S = 0: exactly halfway. Under the selected classroom rule, keep the retained bits regardless of their last bit. Do not increment the magnitude.';
     if(round===0&&sticky===0) return `G = 1, R = 0, S = 0: exactly halfway. The retained last bit is ${last} (${last?'odd':'even'}). ${last?'Increment the magnitude so the rounded last bit becomes 0 (even).':'Keep the retained bits because their last bit is already 0 (even).'}${last?direction:''}`;
     return 'G = 1 and R or S is 1: the discarded part is above halfway. Increment the magnitude.'+direction;
   }
-  function add(aText,bText) {
-    const a=store(aText),b=store(bText),x=a.decoded,y=b.decoded;
+  function add(aText,bText,roundingMode='nearest-even') {
+    const a=store(aText,roundingMode),b=store(bText,roundingMode),x=a.decoded,y=b.decoded;
     if(!Number.isFinite(x.value)||!Number.isFinite(y.value)) {
       const invalid=x.kind==='infinity'&&y.kind==='infinity'&&x.sign!==y.sign;
       const sign=x.kind==='infinity'?x.sign:y.sign;
@@ -52,8 +53,8 @@
     const exact=FP.dyadicText(magnitude,power,sign);
     const exponent=magnitude===0n?null:magnitude.toString(2).length-1+power;
     const roundExponent=exponent===null?-14:Math.max(-14,exponent);
-    const rounding=grs(magnitude,roundExponent-10-power);
-    const stored=store(exact);
+    const rounding=grs(magnitude,roundExponent-10-power,roundingMode);
+    const stored=store(exact,roundingMode);
     return { a,b,fields:stored.fields,rawFields:stored.rawFields,decoded:stored.decoded,
       underflow:stored.underflow,exact,power,exponent,commonExponent,rounding,
       alignedA:binaryAt(x.coefficient,x.power-commonExponent),
