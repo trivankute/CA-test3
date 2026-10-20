@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bit by bit · Floating point practice</title>
+<style>
+
+:root{--ink:#203a35;--muted:#68776e;--green:#21664f;--pale:#eaf3e9;--line:#dce3d9;--red:#b44035;--paper:#fffef9}*{box-sizing:border-box}body{margin:0;background:#f4f5ed;color:var(--ink);font-family:Segoe UI,Arial,sans-serif;font-size:15px}main{max-width:1120px;margin:auto;padding:36px 28px 60px}header{display:flex;justify-content:space-between;align-items:center;padding-bottom:22px;border-bottom:1px solid var(--line)}.brand{font-weight:750;font-size:21px;letter-spacing:-.6px}.brand span{color:var(--green);margin-right:10px}.tag,.eyebrow{font-size:11px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;color:var(--muted)}.hero{padding:35px 0 24px}h1{font-size:clamp(30px,5vw,46px);letter-spacing:-1.7px;margin:10px 0 12px;line-height:1.15}p{line-height:1.7;margin:8px 0;color:var(--muted)}button,select,input,textarea{font:inherit}button{cursor:pointer;background:var(--paper);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:10px 16px;font-weight:600}button:hover{background:var(--pale);border-color:#a2b5a4}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #86b4e0;outline-offset:2px}.primary{background:var(--green);color:white;border-color:var(--green)}.primary:hover{background:#174e3b;color:white}.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}select{border:1px solid var(--line);border-radius:7px;padding:10px;background:var(--paper);color:var(--ink)}.problem{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:23px;margin:20px 0}.problem-top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.badge{font-size:12px;border-radius:20px;background:var(--pale);color:var(--green);padding:6px 12px;font-weight:600}.operands{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;gap:20px;margin-top:20px}.operand h2{font-size:12px;letter-spacing:1.2px;color:var(--muted);margin:0 0 12px}.number{font:600 32px Consolas,monospace;letter-spacing:-1px}.number sub{font-size:13px;color:var(--muted);margin-left:4px}.conversions{display:flex;gap:8px 20px;flex-wrap:wrap;margin-top:12px;font:13px Consolas,monospace;color:var(--muted);overflow-wrap:anywhere}.cross{font-size:28px;color:#97a698;text-align:center}.workspace{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}.sectionbar{padding:19px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line)}h2{font-size:18px;margin:0}.small{font-size:12px;color:var(--muted)}.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:600px}th{padding:20px 14px 16px;text-align:left;font-size:15px;letter-spacing:1px;background:#f8faf4;border-right:1px solid var(--line)}th:last-child,td:last-child{border-right:0}.bits{display:flex;align-items:center;gap:7px;margin-top:11px;letter-spacing:0;font-weight:400;font-size:12px;color:var(--muted)}.bits input{width:65px;padding:6px 8px;border-radius:5px;border:1px solid #cbd6c8;background:white;color:var(--ink)}.bitfeedback{font-size:11px;letter-spacing:0;font-weight:400;display:block;margin-top:5px;min-height:14px}td{padding:12px 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:top}.addrow td{padding:6px 14px;background:#f4f8ef}.addrow button{border:0;background:none;padding:7px 0;color:var(--green);width:100%;text-align:left;font-size:13px}.celltop{display:flex;align-items:center;justify-content:space-between;height:22px;margin-bottom:5px;font-size:11px;color:var(--muted)}.remove{padding:1px 7px;border:0;font-size:15px;background:none;color:#88948b}.remove:hover{color:var(--red)}textarea{display:block;resize:vertical;min-height:46px;width:100%;padding:10px;border:1px solid #d4ddd0;border-radius:6px;background:white;font:15px/1.5 Consolas,monospace;color:var(--ink);overflow-wrap:anywhere}textarea::placeholder{color:#a8b1a5;font-size:12px}.feedback{font-size:11px;line-height:1.5;min-height:0;margin-top:4px;color:var(--red)}.ok textarea,.bits input.ok{border-color:#79a88a;background:#f0f8ef}.bad textarea,.bits input.bad{border-color:#d48c80;background:#fff6f3}.ok .feedback{color:var(--green)}.bottom{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:18px 22px}.bottom .small{margin-left:auto}#result{margin:0 22px 20px;padding:13px 16px;border-radius:8px;background:var(--pale);line-height:1.65;font-size:14px}#result.error{background:#fff0e9;color:#8b382b}[hidden]{display:none!important}details{margin-top:20px;border-top:1px solid var(--line);padding:19px 0}summary{font-weight:600;cursor:pointer}details p,details ol{font-size:14px;line-height:1.8;color:var(--muted)}code{font-family:Consolas,monospace;color:var(--ink)}a{color:var(--green)}.answer{margin-top:15px;border:1px solid var(--line);border-radius:10px;overflow:hidden}.answer th{font-size:12px}.answer td{font:13px/1.7 Consolas,monospace}.answer small{display:block;font:11px Segoe UI,sans-serif;color:var(--muted);margin-bottom:5px}footer{margin-top:24px;display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted)}@media(max-width:650px){main{padding:22px 14px}header .tag{display:none}.operands{gap:8px;grid-template-columns:1fr 24px 1fr}.problem{padding:17px}.number{font-size:26px}.conversions{font-size:12px}.bottom{padding:16px}.bottom .small{width:100%;margin:0}.toolbar button{padding:10px 12px}.hero{padding-top:25px}}
+
+nav[aria-label="Practice pages"] a,nav[aria-label="Practice pages"] span{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:11px 22px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:16px;font-weight:600;text-decoration:none;color:var(--ink)}
+nav[aria-label="Practice pages"] a:hover{background:var(--pale);border-color:#a2b5a4}
+nav[aria-label="Practice pages"] a:focus-visible{outline:3px solid #86b4e0;outline-offset:2px}
+nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);border-color:var(--green);color:white}
+
+.format-grid,.bit-fields{display:grid;grid-template-columns:minmax(80px,.65fr) minmax(120px,1fr) minmax(160px,1.4fr);gap:12px}.format-grid{margin-top:18px}.format-box{padding:16px;border:1px solid var(--line);border-radius:8px;background:#f8faf4}.format-box:nth-child(1){background:#edf4fc}.format-box:nth-child(2){background:#f4f0fb}.format-box:nth-child(3){background:#edf5e9}.format-box b{display:block;font:600 22px Consolas,monospace;margin-top:8px;overflow-wrap:anywhere}.format-box .small{font-weight:600}.panel-body{padding:22px}.panel-body+.panel-body{border-top:1px solid var(--line)}.prompt-value{font:600 28px/1.5 Consolas,monospace;overflow-wrap:anywhere;color:var(--ink);margin:15px 0}.answer-label{display:block;font-size:13px;font-weight:600;margin:10px 0 8px}.answer-label small{color:var(--muted);font-weight:400;margin-left:6px}.answer-field{min-height:48px}.answer-field.correct{border-color:#79a88a;background:#f0f8ef}.answer-field.incorrect{border-color:#d48c80;background:#fff6f3}.field-message{font-size:12px;line-height:1.6;margin-top:6px;color:var(--red)}.correct+.field-message{color:var(--green)}.limits-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px}.limits-grid label{line-height:1.6}#solution{margin-top:20px;padding:22px;background:var(--paper);border:1px solid var(--line);border-radius:12px}#solutionBody p{overflow-wrap:anywhere;color:var(--ink);font:14px/1.8 Consolas,monospace}#solutionBody strong{font-family:Segoe UI,Arial,sans-serif}.sectionbar .eyebrow{font-size:10px}.note{font-size:13px;line-height:1.8}.hint{font-size:12px;color:var(--muted);margin:8px 0 0}#decodeControls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 20px}.rules-formula{overflow-wrap:anywhere}@media(max-width:650px){.panel-body{padding:16px}.limits-grid{grid-template-columns:1fr}.bit-fields{grid-template-columns:1fr}.format-grid{gap:7px;grid-template-columns:.65fr 1fr 1.4fr}.format-box{padding:12px 9px}.format-box b{font-size:17px}.format-box .small{font-size:11px}.prompt-value{font-size:23px}}
+</style>
+</head>
+<body><main>
+<header><div class="brand"><span>▥</span>bit by bit</div><div class="tag">Computer architecture / Practice 03</div></header>
+<nav class="toolbar" style="margin-top:18px" aria-label="Practice pages"><a href="multiply-practice.html">Multiplication</a><a href="division-practice.html">Division</a><span aria-current="page">Floating Point</span><a href="half-addition-practice.html">Half Addition</a><a href="half-multiplication-practice.html">Half Multiplication</a></nav>
+<section class="hero"><div class="eyebrow">Custom binary formats · IEEE-style rules</div><h1>A number. A pattern of bits.</h1><p>One problem, three parts: encode a decimal, find the format limits, and decode your result.</p></section>
+<div class="toolbar"><label for="expSize">Exponent</label><select id="expSize"><option value="random">Random · 3–8 bits</option></select><label for="fracSize">Fraction</label><select id="fracSize"><option value="random">Random · 3–10 bits</option></select><button id="new" class="primary">↻ New problem</button><button id="example">Example · −13.375</button></div>
+<section class="problem" aria-label="Floating point format"><div class="problem-top"><span class="eyebrow">Your representation</span><span class="badge" id="formatBadge"></span></div><div class="format-grid"><div class="format-box"><span class="small">SIGN</span><b id="formatSign"></b></div><div class="format-box"><span class="small">EXPONENT</span><b id="formatExp"></b></div><div class="format-box"><span class="small">FRACTION</span><b id="formatFrac"></b></div></div><p class="hint" id="bias"></p><p class="hint">All-zero and all-one exponent fields are reserved. The leading significand bit is implicit. This is a custom format, not a standard IEEE interchange size.</p></section>
+<section class="workspace"><div class="sectionbar"><h2>Your answers</h2><span class="eyebrow">Think it through · Check when ready</span></div>
+<section id="encodePanel" class="panel-body" aria-label="Decimal to bits"><div class="eyebrow">1 · Encode this decimal</div><p class="prompt-value" id="decimalValue"></p><p class="note">The given decimal has at most 4 digits before and 4 digits after the decimal point. Enter the sign, stored exponent, and fraction fields. Round to nearest, ties to even. Overflow and underflow are possible.</p><div class="bit-fields"><div><label class="answer-label" for="signAnswer">Sign <small id="signWidth"></small></label><textarea id="signAnswer" class="answer-field" rows="1" spellcheck="false" placeholder="0 or 1"></textarea><div id="signAnswerMessage" class="field-message"></div></div><div><label class="answer-label" for="expAnswer">Exponent <small id="expWidth"></small></label><textarea id="expAnswer" class="answer-field" rows="1" spellcheck="false" placeholder="Binary exponent"></textarea><div id="expAnswerMessage" class="field-message"></div></div><div><label class="answer-label" for="fracAnswer">Fraction <small id="fracWidth"></small></label><textarea id="fracAnswer" class="answer-field" rows="1" spellcheck="false" placeholder="Binary fraction"></textarea><div id="fracAnswerMessage" class="field-message"></div></div></div></section>
+<section id="limitsPanel" class="panel-body" aria-label="Format limits"><div class="eyebrow">2 · Positive normal & denormalized limits</div><p class="note">Find the largest and smallest positive values for each category. Exclude zero, negative numbers, infinities, and NaNs.</p><h2 style="margin-top:18px;font-size:15px">Normal numbers</h2><div class="limits-grid"><div><label class="answer-label" for="normalMaxAnswer">Largest positive normal</label><textarea id="normalMaxAnswer" class="answer-field" rows="1" placeholder="Positive normal maximum"></textarea><div id="normalMaxAnswerMessage" class="field-message"></div></div><div><label class="answer-label" for="normalMinAnswer">Smallest positive normal</label><textarea id="normalMinAnswer" class="answer-field" rows="1" placeholder="Positive normal minimum"></textarea><div id="normalMinAnswerMessage" class="field-message"></div></div></div><h2 style="margin-top:24px;font-size:15px">Denormalized (subnormal) numbers</h2><div class="limits-grid"><div><label class="answer-label" for="subnormalMaxAnswer">Largest positive denormalized</label><textarea id="subnormalMaxAnswer" class="answer-field" rows="1" placeholder="Positive denormalized maximum"></textarea><div id="subnormalMaxAnswerMessage" class="field-message"></div></div><div><label class="answer-label" for="subnormalMinAnswer">Smallest positive denormalized</label><textarea id="subnormalMinAnswer" class="answer-field" rows="1" placeholder="Positive denormalized minimum"></textarea><div id="subnormalMinAnswerMessage" class="field-message"></div></div></div><p class="hint">For all four limits, use 4–5 significant digits, counting from the first nonzero digit (e.g. 0.0000001192 or 0.00000011921). Leading zeros do not count; zeros between significant digits do count. Relative tolerance: 0.05%.</p></section>
+<section id="decodePanel" class="panel-body" aria-label="Bits to value"><div class="eyebrow">3 · Decode your result from Part 1</div><p id="linkedNote" class="note"></p><div class="format-grid"><div class="format-box"><span class="small">SIGN</span><b id="givenSign"></b></div><div class="format-box"><span class="small">EXPONENT</span><b id="givenExp"></b></div><div class="format-box"><span class="small">FRACTION</span><b id="givenFrac"></b></div></div><label class="answer-label" for="valueAnswer" style="margin-top:22px">Represented decimal value or special value</label><textarea id="valueAnswer" class="answer-field" rows="1" placeholder="Decimal, +INF, -INF, or NaN" spellcheck="false"></textarea><div id="valueAnswerMessage" class="field-message"></div><p class="hint">Use ordinary decimal notation with at least 6 significant digits (relative tolerance 0.0005%). For signed zero, enter 0 or -0. INF and NaN are case-insensitive.</p></section>
+<div class="bottom"><button id="check" class="primary">Check my work</button><button id="clear">Clear my work</button><button id="showSolution" aria-expanded="false">Show solution</button><span class="small">Ctrl + Enter to check</span></div><div id="result" role="status" aria-live="polite" hidden></div></section>
+<section id="solution" hidden><h2>Solution</h2><div id="solutionBody"></div></section>
+<details><summary>Representation & rounding rules</summary><p>Let E be the number of exponent bits and F the number of fraction bits. Bias = 2^(E − 1) − 1. The sign field always has one bit. The total format uses 1 + E + F bits.</p><ul class="rules-formula"><li>Normal: (−1)^sign × (1 + fraction / 2^F) × 2^(stored exponent − bias).</li><li>Subnormal: stored exponent = 0 and fraction ≠ 0. Value = (−1)^sign × (fraction / 2^F) × 2^(1 − bias).</li><li>Zero: exponent and fraction both zero. Preserve the sign for +0 or −0.</li><li>Infinity: exponent all ones, fraction all zeros. Sign determines +INF or −INF.</li><li>NaN: exponent all ones and a nonzero fraction. Either sign is allowed.</li><li>Rounding: select the nearest representable value. If exactly halfway, select the value whose last significand bit is even (0). A rounded carry may change the exponent or overflow to infinity.</li></ul><p>Largest positive normal = (2 − 2^(−F)) × 2^bias. Smallest positive normal = 2^(1 − bias). Largest positive denormalized = (1 − 2^(−F)) × 2^(1 − bias). Smallest positive denormalized = 2^(1 − bias − F). Denormalized and subnormal refer to the same category.</p><p>Decimal → bits starts from the exact decimal value shown, before rounding. Part 3 always decodes that same rounded representation, so its value can differ from the original decimal. The bit pattern is shown after all three Part 1 fields are correct. You can enter the Part 3 answer at any time.</p><p>Reference: <a href="https://learn.microsoft.com/en-us/cpp/build/ieee-floating-point-representation?view=msvc-170" target="_blank" rel="noreferrer">IEEE floating-point representation</a> and <a href="https://docs.oracle.com/en/java/javase/26/docs/specs/jls/jls-15.html" target="_blank" rel="noreferrer">round-to-nearest, ties-to-even</a>. These rules are adapted to the smaller custom formats used here.</p></details>
+<footer><span>Custom floating point · Encode & decode</span><span id="saveState">Your work is saved automatically in this browser</span></footer>
+</main><script>
+(function (root) {
+  'use strict';
+  function format(e, f) {
+    if (!Number.isInteger(e) || e < 3 || e > 8 || !Number.isInteger(f) || f < 3 || f > 10) throw new RangeError('Invalid format.');
+    const bias = 2 ** (e - 1) - 1;
+    return { e, f, bias, emin: 1 - bias, emax: bias, total: 1 + e + f };
+  }
+  const bits = (x, width) => Number(x).toString(2).padStart(width, '0');
+  function randomDecimal(random = Math.random) {
+    const integer = (a,b) => a + Math.floor(random() * (b-a+1));
+    const sign = integer(0,1) ? '-' : '';
+    if (integer(0,19) === 0) return sign + '0';
+    const digits = integer(0,4), places = integer(0,4);
+    const whole = digits === 0 ? 0 : integer(10 ** (digits-1), 10 ** digits - 1);
+    const fraction = places ? String(integer(0,10 ** places-1)).padStart(places,'0').replace(/0+$/,'') : '';
+    return sign + whole + (fraction ? '.' + fraction : '');
+  }
+  function parseDecimal(raw) {
+    const text = String(raw).trim();
+    if (text.length > 2000) throw new Error('Decimal input is too long to evaluate.');
+    const match = /^([+-]?)(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:e([+-]?\d+))?$/i.exec(text);
+    if (!match) throw new Error('Enter a decimal number.');
+    const tail = match[3] || match[4] || '';
+    const exponent = Number(match[5] || 0) - tail.length;
+    if (!Number.isSafeInteger(exponent) || Math.abs(exponent) > 2000) throw new Error('Decimal exponent is too large to evaluate.');
+    let numerator = BigInt((match[2] || '0') + tail), denominator = 1n;
+    if (exponent >= 0) numerator *= 10n ** BigInt(exponent);
+    else denominator = 10n ** BigInt(-exponent);
+    return { sign: match[1] === '-' ? 1 : 0, numerator, denominator };
+  }
+  function plainDecimal(raw) {
+    const { sign, numerator, denominator } = parseDecimal(raw);
+    const places = denominator.toString().length - 1;
+    let text = numerator.toString();
+    if (places) {
+      text = text.padStart(places + 1, '0');
+      text = (text.slice(0,-places) + '.' + text.slice(-places)).replace(/0+$/, '').replace(/\.$/, '');
+    }
+    return (sign ? '-' : '') + text;
+  }
+  function roundScaled(n, d, shift) {
+    if (shift >= 0) n <<= BigInt(shift); else d <<= BigInt(-shift);
+    const q = n / d, r = n % d;
+    return q + (2n * r > d || (2n * r === d && q % 2n === 1n) ? 1n : 0n);
+  }
+  function encode(decimal, e, f) {
+    const fmt = format(e, f), { sign, numerator: n, denominator: d } = parseDecimal(decimal);
+    const pack = (exp, frac) => [String(sign), bits(exp, e), bits(frac, f)];
+    if (n === 0n) return pack(0, 0);
+    let power = n.toString(2).length - d.toString(2).length;
+    if (power >= 0 ? n < (d << BigInt(power)) : (n << BigInt(-power)) < d) power--;
+    if (power < fmt.emin) {
+      const frac = roundScaled(n, d, f - fmt.emin);
+      return frac >= 2n ** BigInt(f) ? pack(1, 0) : pack(0, frac);
+    }
+    if (power > fmt.emax) return pack(2 ** e - 1, 0);
+    let significand = roundScaled(n, d, f - power);
+    if (significand === 2n ** BigInt(f + 1)) { power++; significand >>= 1n; }
+    if (power > fmt.emax) return pack(2 ** e - 1, 0);
+    return pack(power + fmt.bias, significand - 2n ** BigInt(f));
+  }
+  function decode(fields, e, f) {
+    const fmt = format(e, f);
+    if (!Array.isArray(fields) || fields.length !== 3 || fields.some((s,i) => typeof s !== 'string' || !/^[01]+$/.test(s) || s.length !== [1,e,f][i])) throw new Error('Invalid bit fields.');
+    const sign = Number(fields[0]), exponent = parseInt(fields[1],2), fraction = parseInt(fields[2],2);
+    if (exponent === 2 ** e - 1) return { kind: fraction ? 'NaN' : 'infinity', sign, text: fraction ? 'NaN' : sign ? '-INF' : '+INF', value: fraction ? NaN : sign ? -Infinity : Infinity };
+    const coefficient = exponent ? 2 ** f + fraction : fraction;
+    const power = (exponent ? exponent - fmt.bias : fmt.emin) - f;
+    const value = (sign ? -1 : 1) * coefficient * 2 ** power;
+    return { kind: coefficient === 0 ? 'zero' : exponent ? 'normal' : 'subnormal', sign, coefficient, power, value,
+      text: dyadicText(coefficient, power, sign) };
+  }
+  function dyadicText(coefficient, power, sign = 0) {
+    let n = BigInt(coefficient), text;
+    if (power >= 0) text = String(n << BigInt(power));
+    else {
+      const places = -power;
+      text = String(n * 5n ** BigInt(places)).padStart(places + 1, '0');
+      text = (text.slice(0,-places) + '.' + text.slice(-places)).replace(/0+$/, '').replace(/\.$/, '');
+    }
+    return (sign ? '-' : '') + text;
+  }
+  function limits(e, f) {
+    const fmt = format(e,f);
+    return {
+      max: decode(['0', bits(2 ** e - 2,e), '1'.repeat(f)],e,f),
+      min: decode(['1', bits(2 ** e - 2,e), '1'.repeat(f)],e,f),
+      minPositive: decode(['0', '0'.repeat(e), bits(1,f)],e,f),
+      maxSubnormal: decode(['0', '0'.repeat(e), '1'.repeat(f)],e,f),
+      minNormal: decode(['0', bits(1,e), '0'.repeat(f)],e,f)
+    };
+  }
+  function checkBits(raw, expected) {
+    const value = String(raw).replace(/\s/g,'');
+    if (!value) return { ok:false, message:'This field is empty.' };
+    if (!/^[01]+$/.test(value)) return { ok:false, message:'Use only 0, 1, and whitespace.' };
+    if (value.length !== expected.length) return { ok:false, message:`Expected ${expected.length} bits; received ${value.length}.` };
+    return { ok:value === expected, message:value === expected ? 'Correct' : 'Incorrect bit pattern. Check normalization and rounding.' };
+  }
+  function checkValue(raw, expected, options = {}) {
+    const text = String(raw).trim();
+    if (expected.kind === 'NaN') return { ok:/^nan$/i.test(text), message:'Enter NaN for this bit pattern.' };
+    if (expected.kind === 'infinity') {
+      const valid = expected.sign ? /^-(?:inf(?:inity)?|∞)$/i : /^\+?(?:inf(?:inity)?|∞)$/i;
+      return { ok:valid.test(text), message:`This pattern represents ${expected.text}.` };
+    }
+    try {
+      const actual = parseDecimal(text), target = parseDecimal(expected.text);
+      const actualSigned = (actual.sign ? -1n : 1n) * actual.numerator;
+      const targetSigned = (target.sign ? -1n : 1n) * target.numerator;
+      const difference = actualSigned * target.denominator - targetSigned * actual.denominator;
+      const magnitude = difference < 0n ? -difference : difference;
+      // Four or five significant digits for minimum-positive exercises; six otherwise.
+      // Never use an absolute floor that could accept zero for tiny values.
+      const tolerance = options.significantDigits === 4 ? 500n : options.significantDigits === 5 ? 50n : 5n;
+      const ok = target.numerator === 0n ? actual.numerator === 0n && actual.sign === target.sign :
+        magnitude * 1000000n <= tolerance * target.numerator * actual.denominator;
+      return { ok, message:expected.kind === 'zero' ? 'Check the sign of zero; use -0 for negative zero.' : `Incorrect value. Use decimal notation (relative tolerance ${options.significantDigits === 4 ? '0.05%' : options.significantDigits === 5 ? '0.005%' : '0.0005%'}).` };
+    } catch (error) { return { ok:false, message:error.message }; }
+  }
+  const api = { format, bits, randomDecimal, parseDecimal, plainDecimal, encode, decode, dyadicText, limits, checkBits, checkValue };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Floating = api;
+})(typeof globalThis === 'undefined' ? this : globalThis);
+
+</script><script>
+'use strict';
+const $ = id => document.getElementById(id), FP = Floating;
+const saveKey = 'bit-by-bit-floating-v1';
+let state;
+const randomInt = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const fieldIds = { encode:['signAnswer','expAnswer','fracAnswer'], limits:['normalMaxAnswer','normalMinAnswer','subnormalMaxAnswer','subnormalMinAnswer'], decode:['valueAnswer'] };
+for(let n=3;n<=8;n++) $('expSize').add(new Option(`${n} bits`,n));
+for(let n=3;n<=10;n++) $('fracSize').add(new Option(`${n} bits`,n));
+function save() {
+  try { localStorage.setItem(saveKey,JSON.stringify(state)); }
+  catch { $('saveState').textContent = 'Autosave unavailable; keep this tab open to retain your work.'; }
+}
+function pretty(value, significantDigits = 10) {
+  if (!Number.isFinite(value.value)) return value.text;
+  if (Object.is(value.value,-0)) return '-0';
+  return FP.plainDecimal(Number(value.value.toPrecision(significantDigits)).toString());
+}
+function updateLinkedPattern() {
+  const fields=FP.encode(state.decimal,state.e,state.f);
+  const complete=fieldIds.encode.every((id,i)=>FP.checkBits(state.answers[id]||'',fields[i]).ok);
+  ['givenSign','givenExp','givenFrac'].forEach((id,i)=>$(id).textContent=complete?fields[i]:'?'.repeat(fields[i].length));
+  $('linkedNote').textContent=complete?'This is your correctly encoded result from Part 1. Decode the represented value after rounding.':'Decode the representation you find in Part 1. Its bit pattern will appear here when all three bit fields in Part 1 are correct.';
+}
+function resetFeedback() {
+  $('result').hidden=true; $('solution').hidden=true; $('showSolution').textContent='Show solution'; $('showSolution').setAttribute('aria-expanded','false');
+  document.querySelectorAll('.answer-field').forEach(el => { el.classList.remove('correct','incorrect'); el.removeAttribute('aria-invalid'); });
+  document.querySelectorAll('.field-message').forEach(el => el.textContent='');
+}
+function render() {
+  const fmt=FP.format(state.e,state.f);
+  state.decimal=FP.plainDecimal(state.decimal);
+  $('expSize').value=state.expChoice; $('fracSize').value=state.fracChoice;
+  $('formatBadge').textContent=`${fmt.total}-bit format`;
+  $('formatSign').textContent='1 bit'; $('formatExp').textContent=`${state.e} bits`; $('formatFrac').textContent=`${state.f} bits`;
+  $('bias').textContent=`Bias = ${fmt.bias} · Round to nearest, ties to even`;
+  $('decimalValue').textContent=state.decimal;
+  updateLinkedPattern();
+  $('signWidth').textContent='1 bit'; $('expWidth').textContent=`${state.e} bits`; $('fracWidth').textContent=`${state.f} bits`;
+  for(const ids of Object.values(fieldIds)) for(const id of ids) $(id).value=state.answers[id]||'';
+  resetFeedback();
+}
+function newProblem(example=false) {
+  const expChoice=example?'4':$('expSize').value, fracChoice=example?'5':$('fracSize').value;
+  const e=expChoice==='random'?randomInt(3,8):Number(expChoice), f=fracChoice==='random'?randomInt(3,10):Number(fracChoice);
+  state={ e,f,expChoice,fracChoice,exerciseVersion:2,decimal:example?'-13.375':FP.randomDecimal(),answers:{} };
+  render(); save();
+}
+function expected() {
+  const {e,f}=state;
+  const limits=FP.limits(e,f);
+  const encoded=FP.encode(state.decimal,e,f);
+  return { encode:encoded, limits:[limits.max,limits.minNormal,limits.maxSubnormal,limits.minPositive], decode:[FP.decode(encoded,e,f)] };
+}
+for(const ids of Object.values(fieldIds)) for(const id of ids) {
+  $(id).setAttribute('aria-describedby',id+'Message');
+  $(id).oninput=()=>{ state.answers[id]=$(id).value; resetFeedback(); updateLinkedPattern(); save(); };
+}
+$('expSize').onchange=()=>newProblem(); $('fracSize').onchange=()=>newProblem();
+$('new').onclick=()=>newProblem();
+$('example').onclick=()=>newProblem(true);
+$('clear').onclick=()=>{ state.answers={}; render(); save(); };
+$('check').onclick=()=>{
+  const values=expected(), ids=Object.values(fieldIds).flat(); let count=0;
+  for(const [part, fields] of Object.entries(fieldIds)) fields.forEach((id,i)=>{
+    const result=part==='encode'?FP.checkBits($(id).value,values[part][i]):FP.checkValue($(id).value,values[part][i],{significantDigits:part==='limits'?4:6});
+    $(id).classList.remove('correct','incorrect'); $(id).classList.add(result.ok?'correct':'incorrect');
+    $(id).setAttribute('aria-invalid',String(!result.ok));
+    $(id+'Message').textContent=result.ok?'✓ Correct':result.message;
+    if(result.ok) count++;
+  });
+  $('result').hidden=false; $('result').classList.toggle('error',count!==ids.length);
+  $('result').textContent=count===ids.length?`✓ Everything is correct! ${count}/${ids.length} fields.`:`${count}/${ids.length} fields correct. Review the highlighted answers.`;
+};
+$('showSolution').onclick=()=>{
+  const opening=$('solution').hidden; $('solution').hidden=!opening; $('showSolution').textContent=opening?'Hide solution':'Show solution';
+  $('showSolution').setAttribute('aria-expanded',String(opening));
+  if(!opening) return;
+  const values=expected(); $('solutionBody').replaceChildren();
+  const add=(title,text)=>{
+    const item=document.createElement('p'), label=document.createElement('strong'); label.textContent=title+': ';
+    item.append(label,document.createTextNode(text)); $('solutionBody').append(item);
+  };
+  {
+    add('1. Sign | Exponent | Fraction',values.encode.join(' | '));
+    const decoded=FP.decode(values.encode,state.e,state.f);
+    add('Represented value',`${pretty(decoded)} (${decoded.kind})`);
+    if(Number.isFinite(decoded.value)) add('Exact decimal',decoded.text);
+  }
+  {
+    ['Largest positive normal','Smallest positive normal','Largest positive denormalized','Smallest positive denormalized'].forEach((title,i)=>{
+      add(`2. ${title}`,`${pretty(values.limits[i],5)} (exact: ${values.limits[i].text})`);
+    });
+  }
+  {
+    const value=values.decode[0]; add('3. Bit pattern from Part 1',values.encode.join(' | ')); add('Decoded value',pretty(value)); add('Classification',value.kind);
+    if(Number.isFinite(value.value)) {
+      add('Exact decimal',value.text);
+      add('Calculation',`${value.sign?'-':''}${value.coefficient} × 2^(${value.power})`);
+    } else add('Rule',value.kind==='NaN'?'All exponent bits are 1, and the fraction is nonzero.':'All exponent bits are 1, and the fraction is zero. The sign determines +INF or -INF.');
+  }
+};
+document.addEventListener('keydown',event=>{ if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();$('check').click();} });
+try {
+  const stored=JSON.parse(localStorage.getItem(saveKey));
+  if(stored &&
+    ['random',...Array.from({length:6},(_,i)=>String(i+3))].includes(stored.expChoice) &&
+    ['random',...Array.from({length:8},(_,i)=>String(i+3))].includes(stored.fracChoice) &&
+    stored.answers && Object.values(stored.answers).every(v=>typeof v==='string')) {
+    FP.format(stored.e,stored.f); FP.encode(stored.decimal,stored.e,stored.f);
+    stored.decimal=FP.plainDecimal(stored.decimal);
+    if(!/^-?\d{1,4}(?:\.\d{1,4})?$/.test(stored.decimal)) {
+      stored.decimal=FP.randomDecimal(); stored.answers={};
+    }
+    if(stored.exerciseVersion!==2) {
+      stored.answers=Object.fromEntries(fieldIds.encode.filter(id=>typeof stored.answers[id]==='string').map(id=>[id,stored.answers[id]]));
+    }
+    stored.exerciseVersion=2; delete stored.pattern; delete stored.decodeType; state=stored;
+  }
+} catch { /* Ignore an outdated or unavailable save. */ }
+if(state) render(); else newProblem();
+
+</script></body></html>
