@@ -5,6 +5,23 @@ assert.equal(sample.exact,'26.5400390625');
 assert.equal(sample.decoded.text,'26.546875');
 assert.deepEqual([sample.rounding.guard,sample.rounding.round,sample.rounding.sticky],[1,0,1]);
 assert.equal(sample.rounding.increment,true);
+const negativeTie=H.add('-42.59375','-0.015625');
+assert.equal(negativeTie.exact,'-42.609375');
+assert.deepEqual([negativeTie.rounding.guard,negativeTie.rounding.round,negativeTie.rounding.sticky],[1,0,0]);
+assert.equal(negativeTie.rounding.retained,'1363');
+assert.equal(negativeTie.rounding.increment,true);
+assert.deepEqual(negativeTie.fields,['1','10100','0101010100']);
+assert.equal(negativeTie.decoded.text,'-42.625');
+assert.match(H.roundingReason(negativeTie.rounding,true),/exactly halfway/);
+assert.match(H.roundingReason(negativeTie.rounding,true),/1 \(odd\)/);
+assert.match(H.roundingReason(negativeTie.rounding,true),/more negative/);
+const negativeEvenTie=H.add('-42.5625','-0.015625');
+assert.equal(negativeEvenTie.rounding.increment,false);
+assert.equal(negativeEvenTie.decoded.text,'-42.5625');
+assert.match(H.roundingReason(negativeEvenTie.rounding,true),/0 \(even\)/);
+assert.match(H.roundingReason(H.add('1','0.0001').rounding),/below halfway/);
+assert.match(H.roundingReason(sample.rounding),/above halfway/);
+assert.match(H.roundingReason(H.add('1','1').rounding),/result is exact/);
 for(const [a,b,value,increment] of [
   ['1','0.00048828125','1',false],
   ['1.0009765625','0.00048828125','1.001953125',true],

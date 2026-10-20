@@ -70,6 +70,10 @@ $('showSolution').onclick=()=>{
       step('5 · Use one guard, one round, and one sticky bit',[
         `Retain ${retained[0]}.${retained.slice(1)} at exponent ${roundExponent}. G = ${r.guard}, R = ${r.round}, S = ${r.sticky}.`,
         'S is the OR of all bits after R. Increment exactly when G = 1 and at least one of R, S, or the retained last bit is 1.',
+        H.roundingReason(r,result.sign===1),
+        ...(r.guard===1&&r.round===0&&r.sticky===0?[
+          `Halfway candidates: ${FP.dyadicText(BigInt(r.retained),roundExponent-10,result.sign)} and ${FP.dyadicText(BigInt(r.retained)+1n,roundExponent-10,result.sign)}. Select the candidate whose retained significand is even.`
+        ]:[]),
         `${r.increment?'Increment':'Keep'} the retained significand. Rounded significand integer: ${r.retained} → ${r.rounded}.`,
         BigInt(r.rounded)>=2048n?'The rounded significand carries into a new leading bit: shift it right once and increase the exponent by 1.':'No exponent carry is needed.'
       ]);
@@ -88,7 +92,7 @@ $('showSolution').onclick=()=>{
 document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();$('check').click();}});
 try{
   const stored=JSON.parse(localStorage.getItem(saveKey));
-  if(stored&&['mixed','ordinary','tie','sticky','cancellation','overflow','underflow','example'].includes(stored.type)&&typeof stored.bits==='string'&&typeof stored.decimal==='string'){
+  if(stored&&['mixed','ordinary','tie','sticky','cancellation','overflow','underflow','example','negative-tie'].includes(stored.type)&&typeof stored.bits==='string'&&typeof stored.decimal==='string'){
     H.add(stored.a,stored.b);state=stored;
   }
 }catch{/* Ignore an invalid or unavailable save. */}

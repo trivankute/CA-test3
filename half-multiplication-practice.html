@@ -16,7 +16,7 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
 <section class="problem" aria-label="Multiplication problem"><div class="problem-top"><span class="eyebrow">Calculate A × B</span><span class="badge">Binary16 · Bias 15</span></div><div class="operands"><div class="operand"><h2>A · DECIMAL</h2><div class="number" id="aValue"></div></div><div class="cross">×</div><div class="operand"><h2>B · DECIMAL</h2><div class="number" id="bValue"></div></div></div><div class="format-strip"><span>Sign: 1 bit</span><span>Exponent: 5 bits</span><span>Fraction: 10 bits</span><span>G / R / S: 1 / 1 / 1</span></div><p class="problem-description" style="margin-top:18px">Calculate the product by hand, assuming A and B are stored in 16-bit half precision. Use one guard bit, one round bit, and one sticky bit; round to nearest, ties to even. Give the final 16-bit result and the decimal value obtained by decoding it.</p><p class="policy"><strong>Exercise rule:</strong> Overflow → +INF or −INF. Underflow → 0: values that would be subnormal or round to zero are flushed to an all-zero 16-bit word. Apply this rule when storing operands and the result.</p></section>
 <section class="workspace"><div class="sectionbar"><h2>Final answers</h2><span class="small">Two answers · One product</span></div><div class="answer-body"><div class="answer-grid"><div><label for="bitsAnswer" class="answer-label">16-bit product</label><textarea id="bitsAnswer" class="answer-field" rows="1" spellcheck="false" placeholder="s eeeee ffffffffff" aria-describedby="bitsAnswerMessage"></textarea><div id="bitsAnswerMessage" class="field-message"></div><p class="small">Exactly 16 binary digits. Spaces and line breaks are allowed.</p></div><div><label for="decimalAnswer" class="answer-label">Decoded decimal value</label><textarea id="decimalAnswer" class="answer-field" rows="1" spellcheck="false" placeholder="Decimal, +INF, -INF, or 0" aria-describedby="decimalAnswerMessage"></textarea><div id="decimalAnswerMessage" class="field-message"></div><p class="small">Decode the rounded product. Use at least 6 significant digits; relative tolerance 0.0005%. For signed zero, enter -0 when the sign bit is 1.</p></div></div></div><div class="bottom"><button class="primary" id="check">Check my work</button><button id="clear">Clear my work</button><button id="showSolution" aria-expanded="false">Show all steps</button><span class="small">Ctrl + Enter to check</span></div><div id="result" role="status" aria-live="polite" hidden></div></section>
 <section id="solution" hidden><h2>Worked solution</h2><div id="solutionBody"></div></section>
-<details><summary>Half precision & G/R/S rules</summary><p>A normal half-precision value is (−1)^s × 1.f × 2^(E − 15). Normal unbiased exponents run from −14 to +15. Round each input to its stored half value before multiplying. The product sign is the XOR of the operand signs. Multiply the significands and add the unbiased exponents; normalize the product, then round.</p><p>Keep 11 significant bits (the implicit leading bit plus 10 fraction bits). G is the next bit, R is the bit after G, and S is the OR of all remaining discarded bits. Increment the retained significand when G = 1 and (R = 1 or S = 1 or the retained last bit is 1). This implements round to nearest, ties to even.</p><p>A significand carry may increase the exponent. An overflowing result uses exponent 11111 and fraction 0000000000; the sign selects +INF or −INF. The underflow-to-zero policy is an exercise convention: standard IEEE half precision also supports subnormals.</p><p>The example uses A = 26.125 and B = 0.4150390625. Decimal numbers are displayed in full, without scientific notation.</p><p>References: <a href="https://people.csail.mit.edu/devadas/6.004/Lectures/lect17/tsld017.htm" target="_blank" rel="noreferrer">floating-point multiplication</a>, <a href="https://www.mathworks.com/help/coder/ug/what-is-half-precision.html" target="_blank" rel="noreferrer">binary16 field widths</a> and <a href="https://docs.oracle.com/cd/E19957-01/802-5692/802-5692.pdf" target="_blank" rel="noreferrer">guard, round, sticky bits and nearest-even arithmetic</a>.</p></details>
+<details><summary>Half precision & G/R/S rules</summary><p>A normal half-precision value is (−1)^s × 1.f × 2^(E − 15). Normal unbiased exponents run from −14 to +15. Round each input to its stored half value before multiplying. The product sign is the XOR of the operand signs. Multiply the significands and add the unbiased exponents; normalize the product, then round.</p><p>Keep 11 significant bits (the implicit leading bit plus 10 fraction bits). G is the next bit, R is the bit after G, and S is the OR of all remaining discarded bits. Increment the retained significand when G = 1 and (R = 1 or S = 1 or the retained last bit is 1). This implements round to nearest, ties to even. When G = 1 and R = S = 0, keep an even retained last bit (0), or increment an odd retained last bit (1) to make it even. The rule applies equally to positive and negative values.</p><p>A significand carry may increase the exponent. An overflowing result uses exponent 11111 and fraction 0000000000; the sign selects +INF or −INF. The underflow-to-zero policy is an exercise convention: standard IEEE half precision also supports subnormals.</p><p>The example uses A = 26.125 and B = 0.4150390625. Decimal numbers are displayed in full, without scientific notation.</p><p>References: <a href="https://people.csail.mit.edu/devadas/6.004/Lectures/lect17/tsld017.htm" target="_blank" rel="noreferrer">floating-point multiplication</a>, <a href="https://www.mathworks.com/help/coder/ug/what-is-half-precision.html" target="_blank" rel="noreferrer">binary16 field widths</a> and <a href="https://docs.oracle.com/cd/E19957-01/802-5692/802-5692.pdf" target="_blank" rel="noreferrer">guard, round, sticky bits and nearest-even arithmetic</a>.</p></details>
 <footer><span>Half multiplication · G/R/S · Nearest even</span><span id="saveState">Your work is saved automatically in this browser</span></footer>
 </main><script>
 (function (root) {
@@ -175,6 +175,13 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
     return { retained:retained.toString(),guard,round,sticky,increment,
       rounded:(retained+(increment?1n:0n)).toString() };
   }
+  function roundingReason(rounding,negative=false) {
+    const {guard,round,sticky}=rounding,last=Number(BigInt(rounding.retained)%2n);
+    if(guard===0) return round||sticky ? 'G = 0: the discarded part is below halfway. Keep the retained bits.' : 'G = R = S = 0: the result is exact. Keep the retained bits.';
+    const direction=negative?' Increasing the magnitude makes this negative result more negative; its sign stays 1.':'';
+    if(round===0&&sticky===0) return `G = 1, R = 0, S = 0: exactly halfway. The retained last bit is ${last} (${last?'odd':'even'}). ${last?'Increment the magnitude so the rounded last bit becomes 0 (even).':'Keep the retained bits because their last bit is already 0 (even).'}${last?direction:''}`;
+    return 'G = 1 and R or S is 1: the discarded part is above halfway. Increment the magnitude.'+direction;
+  }
   function add(aText,bText) {
     const a=store(aText),b=store(bText),x=a.decoded,y=b.decoded;
     if(!Number.isFinite(x.value)||!Number.isFinite(y.value)) {
@@ -206,6 +213,7 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
     if(type==='mixed') type=['ordinary','ordinary','tie','sticky','cancellation','overflow','underflow'][ri(0,6)];
     const sign=ri(0,1);
     if(type==='example') return ['26.125','0.4150390625'];
+    if(type==='negative-tie') return ['-42.59375','-0.015625'];
     if(type==='overflow') return [sign?'-65504':'65504',FP.dyadicText(1,ri(5,15),sign)];
     if(type==='underflow') {
       const m=ri(1025,2047),difference=ri(1,m-1024);
@@ -222,7 +230,7 @@ nav[aria-label="Practice pages"] [aria-current="page"]{background:var(--green);b
     }
     return [FP.randomDecimal(random),FP.randomDecimal(random)];
   }
-  const api={store,add,grs,binaryAt,generate};
+  const api={store,add,grs,binaryAt,roundingReason,generate};
   if(typeof module!=='undefined'&&module.exports) module.exports=api; else root.HalfAddition=api;
 })(typeof globalThis==='undefined'?this:globalThis);
 
@@ -391,6 +399,7 @@ $('showSolution').onclick=()=>{
       step('5 · Use one guard, one round, and one sticky bit',[
         `Retain ${retained[0]}.${retained.slice(1)} at exponent ${roundExponent}. G = ${r.guard}, R = ${r.round}, S = ${r.sticky}.`,
         'S is the OR of all bits after R. Increment exactly when G = 1 and at least one of R, S, or the retained last bit is 1.',
+        HalfAddition.roundingReason(r,result.sign===1),
         `${r.increment?'Increment':'Keep'} the retained significand. Rounded significand integer: ${r.retained} → ${r.rounded}.`,
         BigInt(r.rounded)>=2048n?'The rounded significand carries into a new leading bit: shift it right once and increase the exponent by 1.':'No exponent carry is needed.'
       ]);

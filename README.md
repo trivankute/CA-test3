@@ -76,3 +76,5 @@ The worked solution shows stored inputs, sign XOR, exponent addition, full signi
 Source: `half-multiplication.html`, `half-multiplication.js`, `half-multiplication-app.js`. Shared storage and G/R/S routines come from `half-addition.js`. Run `node test-half-multiplication.cjs` to compare 27,000 products with native Float16Array. `node build.cjs` rebuilds all five standalone pages.
 
 Half Multiplication now explains each original operand before storage: fractional decimal-to-binary expansion, full original binary value, normalization, retained 10-bit fraction and G/R/S, then rounded stored half bits/value. The Conversion example uses −80.7494 × −0.2236, explicitly showing 0.7494 = 0.101111111101… before A rounds to −80.75.
+
+Half Addition and Half Multiplication now spell out the exact G/R/S rounding decision, including the retained least-significant bit in halfway cases. Negative halfway practice includes −42.59375 + −0.015625 = −42.609375 exactly, rounded to −42.625 because significand 1364 is even (1363 is odd). The numeric nearest-even algorithm is unchanged.
