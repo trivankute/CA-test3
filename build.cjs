@@ -29,3 +29,10 @@ const halfMultiplicationHtml = fs.readFileSync('half-multiplication.html', 'utf8
   .replace('<script src="half-multiplication-app.js"></script>', () => `<script>\n${fs.readFileSync('half-multiplication-app.js', 'utf8')}\n</script>`);
 fs.writeFileSync('half-multiplication-practice.html', halfMultiplicationHtml);
 console.log('Built half-multiplication-practice.html — standalone, works offline.');
+
+let mockTestHtml = fs.readFileSync('mock-test.html', 'utf8');
+for (const name of ['multiply','division','floating','half-addition','half-multiplication','mock-test','mock-test-app']) {
+  mockTestHtml = mockTestHtml.replace(`<script src="${name}.js"></script>`, () => `<script>\n${fs.readFileSync(name + '.js', 'utf8')}\n</script>`);
+}
+fs.writeFileSync('mock-test-practice.html', mockTestHtml);
+console.log('Built mock-test-practice.html — standalone, works offline.');

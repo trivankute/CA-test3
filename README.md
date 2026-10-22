@@ -84,3 +84,18 @@ Half Addition and Half Multiplication now spell out the exact G/R/S rounding dec
 Half Addition and Half Multiplication now default to the requested classroom rule: increment iff G = 1 and (R = 1 or S = 1); exact halfway GRS = 100 keeps the retained magnitude, regardless of the last retained bit. This is round-to-nearest with ties toward zero, not IEEE nearest-even. The Rounding rule selector also offers IEEE nearest-even. The selected mode applies consistently to input storage, operation rounding, conversion explanations, grading, and worked solutions. Existing saves without a rounding-mode field migrate to the classroom rule and clear prior answers.
 
 With classroom rounding, −42.59375 + −0.015625 gives −42.59375; with nearest-even, it gives −42.625. The custom-format Floating Point page retains nearest-even. `node test-classroom-rounding.cjs` checks 20,000 operations against an independent nearest-value reference plus all G/R/S combinations and exact-halfway boundaries.
+
+
+## Mock test page
+
+Open `mock-test-practice.html`, or choose **Mock Test** from any practice page. The standalone file works offline. Each new test has 18 questions:
+
+- Two multiplication register tables and two division register tables, covering first and refined hardware. Operands are unsigned 4-bit binary integers, with explicit MC/MULT or dividend/divisor assignments. Enter register widths, initialization, the final completed iteration, and decimal operands/results. Refined division uses Div / REM, with the final remainder and quotient packed in REM.
+- Four positive limits: largest/smallest normal and largest/smallest subnormal. Each question supplies a format with 3–4 exponent and fraction bits. Limit answers accept 4–5 significant digits.
+- Four long decimals to encode in a 1-sign / 5-exponent / 12-fraction format. This format has **18 bits**, not 17. Exact decimal rational arithmetic determines rounding; subnormals are supported.
+- Four hexadecimal words to decode using the same 18-bit format. Five hexadecimal digits supply 20 display bits; the two high padding bits are outside the stored word. Cases include ordinary values, a subnormal, and infinity or NaN.
+- One floating-point addition and one multiplication, using 4 fraction bits and a 5-bit exponent. Store operands first. Enter the signed normalized significand including G and R, the biased exponent before final rounding, the final significand without G/R, and the final biased exponent. Sticky is evaluated from the remaining exact tail for the rounding decision.
+
+The default classroom rule keeps GRS 100; nearest-even is also available. Changing the rule clears the test's answers. Each question can be checked separately and has a hidden answer with working; **Check entire test** reports fully correct questions and correct fields. The test seed, selected rule, and answers are saved separately in browser storage. **New test** creates a new randomized paper, and **Clear all answers** retains its questions.
+
+Source: `mock-test.html`, `mock-test.js`, and `mock-test-app.js`. Run `node test-mock-test.cjs` for 200 seeded papers, independent numeric references for register results and 18-bit conversions, format limits, precision boundaries, and answer validation. Run `node build.cjs` to rebuild all six standalone pages. The shared floating-point library now supports up to 12 fraction bits; the existing Floating Point page keeps its 3–10-bit selector.

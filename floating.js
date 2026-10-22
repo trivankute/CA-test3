@@ -1,7 +1,7 @@
 (function (root) {
   'use strict';
   function format(e, f) {
-    if (!Number.isInteger(e) || e < 3 || e > 8 || !Number.isInteger(f) || f < 3 || f > 10) throw new RangeError('Invalid format.');
+    if (!Number.isInteger(e) || e < 3 || e > 8 || !Number.isInteger(f) || f < 3 || f > 12) throw new RangeError('Invalid format.');
     const bias = 2 ** (e - 1) - 1;
     return { e, f, bias, emin: 1 - bias, emax: bias, total: 1 + e + f };
   }
